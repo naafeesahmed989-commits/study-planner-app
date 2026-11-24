@@ -1,15 +1,46 @@
 import 'package:flutter/material.dart';
-
 const orange = Color(0xFFF57E1E);
 const pink = Color(0xFFF52380);
-
-void main() {
-  runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: Phase1()));
+void main() => runApp(
+  const MaterialApp(debugShowCheckedModeBanner: false, home: Phase2()),
+);
+// STATIC: stateful screen
+class Phase2 extends StatefulWidget {
+  const Phase2({super.key});
+  @override
+  State<Phase2> createState() => _Phase2State();
 }
-// STATIC: static screen with 5 fixed goal cards
-class Phase1 extends StatelessWidget {
-  const Phase1({super.key});
-
+class _Phase2State extends State<Phase2> {
+  // LOGIC: list of 5 goal maps
+  var goals = [
+    {'subject': 'Mathematics', 'hours': 5, 'done': false},
+    {'subject': 'Mobile App Development', 'hours': 8, 'done': false},
+    {'subject': 'Databases', 'hours': 4, 'done': false},
+    {'subject': 'Networking', 'hours': 3, 'done': false},
+    {'subject': 'Operating Systems', 'hours': 6, 'done': false},
+  ];
+  // LOGIC: subject names for new goals
+  var subjects = [
+    'Data Structures',
+    'Software Testing',
+    'Artificial Intelligence',
+    'Computer Security',
+    'Web Engineering',
+  ];
+  // LOGIC: add a subject goal
+  void addGoal() => setState(() {
+    goals.add({
+      'subject': subjects[goals.length % subjects.length],
+      'hours': 3,
+      'done': false,
+    });
+  });
+  // LOGIC: toggle done
+  void toggleGoal(int i) => setState(() {
+    goals[i]['done'] = !(goals[i]['done'] as bool);
+  });
+  // LOGIC: remove goal
+  void deleteGoal(int i) => setState(() => goals.removeAt(i));
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,11 +56,12 @@ class Phase1 extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // STATIC: welcome banner
           Container(
+            margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [pink, orange]),
@@ -51,50 +83,62 @@ class Phase1 extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
           // STATIC: heading
-          const Text(
-            'My Study Goals',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'My Study Goals',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(height: 8),
-          // STATIC: 5 hard-coded goal cards
-          _card('Mathematics', 5, false, orange),
-          _card('Mobile App Development', 8, false, pink),
-          _card('Databases', 4, false, orange),
-          _card('Networking', 3, false, pink),
-          _card('Operating Systems', 6, false, orange),
+          // CONNECTION: connects goals list and logic to ListView.builder
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: goals.length,
+              itemBuilder: (context, i) {
+                var g = goals[i];
+                var done = g['done'] as bool;
+                // STATIC: goal card
+                return Card(
+                  color: done ? Colors.grey.shade200 : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: ListTile(
+                    onTap: () => toggleGoal(i),
+                    leading: Checkbox(
+                      value: done,
+                      activeColor: i.isEven ? orange : pink,
+                      onChanged: (_) => toggleGoal(i),
+                    ),
+                    title: Text(
+                      g['subject'] as String,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        decoration: done ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                    subtitle: Text('${g['hours']} hours'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: pink),
+                      onPressed: () => deleteGoal(i),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
-      // STATIC: button does nothing yet
+      // CONNECTION: connects button to addGoal
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: null,
+        onPressed: addGoal,
         backgroundColor: pink,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Add goal'),
-      ),
-    );
-  }
-
-  // STATIC: card widget
-  Widget _card(String subject, int hours, bool done, Color iconColor) {
-    return Card(
-      color: done ? Colors.grey.shade200 : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: ListTile(
-        leading: Icon(
-          done ? Icons.check_box : Icons.check_box_outline_blank,
-          color: iconColor,
-        ),
-        title: Text(
-          subject,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            decoration: done ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        subtitle: Text('$hours hours'),
       ),
     );
   }
